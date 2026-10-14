@@ -103,9 +103,9 @@ def save_image(image):
         image_path     = os.path.join(BANNER_DIRECTORY, f"{file_name}{file_extension}") 
         file_bytes     = image.read()
         # Write the bytes to the specified local path                                                                                                                                                                            
-        with open(image_path, "wb") as of:                                                                                                                                                                                         
+        with open(image_path, "wb") as of:
             of.write(file_bytes)
-        return image_path
+        return f"{BANNER_DIRECTORY}/{file_name}{file_extension}"
 
     except Exception as e:                                                                                                                                                                                                       
         st.error(f"An error occurred while saving the file: {e}")  
