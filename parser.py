@@ -14,7 +14,7 @@ class Parser:
         self.child = child
         dst_dir = PATH
         dst_dir.mkdir(parents=True, exist_ok=True)
-        fname = str(title).strip().replace(" ", "_")
+        fname = re.sub(r'[<>:"/\\|?*]', '', str(title)).strip().rstrip('.').replace(" ", "_")
         self.path = pathlib.Path(dst_dir / f"post_{fname}.html")
 
     def load_html(self):
