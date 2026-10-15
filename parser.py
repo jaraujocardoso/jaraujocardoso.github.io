@@ -3,6 +3,7 @@ import re
 from bs4 import BeautifulSoup as bs
 from markdown_it import MarkdownIt
 from copy import copy
+from helper import Helper
 
 PATH = pathlib.Path(__file__).parent.resolve()
 class Parser:
@@ -14,8 +15,11 @@ class Parser:
         self.child = child
         dst_dir = PATH
         dst_dir.mkdir(parents=True, exist_ok=True)
-        fname = re.sub(r'[<>:"/\\|?*]', '', str(title)).strip().rstrip('.').replace(" ", "_")
-        self.path = pathlib.Path(dst_dir / f"post_{fname}.html")
+        self.path = pathlib.Path(dst_dir / self.post_file_name(title))
+
+    @staticmethod
+    def post_file_name(title):
+        return f"post_{Helper.sanitize_filename(title)}.html"
 
     def load_html(self):
         """
@@ -56,7 +60,7 @@ class Parser:
         new_child_tag = self.soup.new_tag(
             child_tag_name,
             id=child_id,
-            class_="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1",
+            attrs={"class": "col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"},
         )
 
         # Extract parsed body contents from converted Markdown HTML
@@ -65,11 +69,9 @@ class Parser:
             # Transfer top-level elements into the new child tag
             for node in list(parsed_body.children):
                 new_child_tag.append(node)
-            images = parsed_body.findAll('img')
-            if images:
-                print(images)
-                for i in images:
-                    i['class'] = i['class'] = "img-responsive"
+            # Images were moved into the new tag, so look them up there
+            for i in new_child_tag.find_all('img'):
+                i['class'] = "img-responsive"
 
         return new_child_tag
     
@@ -137,20 +139,21 @@ class Parser:
         post_preview = self.soup.find('div', id='post-preview-latest')
         if post_preview == None:
             return Exception('Failed to find base div')
-        post_preview['id'] = 'post-preview-'+post_preview.find('h2').string.replace(' ', '')
+        post_preview['id'] = 'post-preview-'+''.join(post_preview.find('h2').get_text().split())
         
         parent_post_preview = post_preview.parent
         new_child_post_preview = self.soup.new_tag('div', id='post-preview-latest')
         
-        new_child_post_href = self.soup.new_tag('a', href='post_'+title.replace(' ', '_')+'.html')
+        new_child_post_href = self.soup.new_tag('a', href=self.post_file_name(title))
         new_child_post_title = self.soup.new_tag('h2', type='editable', string=title)
         new_child_post_subtitle = self.soup.new_tag('h3', type='editable', string=sub_title)
-        new_child_post_small = self.soup.new_tag('small', type='editable', class_='post-meta', string=f'Publicado por {name} a {date_}')
-        new_child_post_small = self.soup.new_tag('hr', type='editable')
-       
+        new_child_post_small = self.soup.new_tag('small', type='editable', attrs={'class': 'post-meta'}, string=f'Publicado por {name} a {date_}')
+        new_child_post_hr = self.soup.new_tag('hr', type='editable')
+
         new_child_post_href.append(new_child_post_title)
         new_child_post_href.append(new_child_post_subtitle)
         new_child_post_href.append(new_child_post_small)
+        new_child_post_href.append(new_child_post_hr)
         
         new_child_post_preview.append(new_child_post_href)
         parent_post_preview.insert(0, new_child_post_preview)
