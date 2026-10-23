@@ -9,7 +9,7 @@ https://github.com/learning-zone/website-templates repo
 * It uses beautifulsoup to parse HTML and create new publications
 * It creates a new post and adds it to the home page, allowing users to use github pages as a personal blog
 
-```
+``` 
 # To run
 git clone 'https://github.com/rpgv/silver-potato.git'
 cd silver-potato
